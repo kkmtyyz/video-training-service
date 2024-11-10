@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { API_BASE_URL, X_APIGW_API_ID } from "../Constants";
+import { API_BASE_URL } from "../Constants";
 import { TrainingCard } from "./TrainingCard";
 
 function Home() {
@@ -24,9 +24,6 @@ function Home() {
       const url = API_BASE_URL + "/training/list";
       const req = {
         method: "GET",
-        headers: {
-          "x-apigw-api-id": X_APIGW_API_ID,
-        },
       };
 
       const res = await fetch(url, req);

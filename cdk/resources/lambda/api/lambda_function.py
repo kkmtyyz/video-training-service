@@ -18,7 +18,8 @@ def lambda_handler(event, context):
     logger.debug(event)
     logger.debug(context)
 
-    request_path = event["path"]
+    #  "/api/training" で来るので "/api" を取り除く
+    request_path = "/" + event["path"].split("/", 2)[2]
     request_method = event["httpMethod"]
     logger.debug("path method", extra={"path": request_path, "method": request_method})
 

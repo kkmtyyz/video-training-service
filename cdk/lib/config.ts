@@ -29,11 +29,6 @@ export class VtConfig extends Construct {
   samlIdpMetaDataPath = "resources/saml/saml_idp_metadata.xml"; // SAML IdPのメタデータファイルへのパス
 
   /*
-   * api
-   */
-  apiStageName = "main";
-
-  /*
    * s3
    */
   uploadBucketNamePrefix = "upload."; // 動画アップロード用バケット名: <uploadBucketNamePrefix><appDomain>

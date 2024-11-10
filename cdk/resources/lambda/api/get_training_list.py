@@ -35,4 +35,7 @@ def do(event):
     training_list = get_training_list()
     res = {"trainings": training_list}
 
-    return {"statusCode": 200, "body": json.dumps(res)}
+    return {
+        "statusCode": 200,
+        "body": json.dumps(res),
+    }

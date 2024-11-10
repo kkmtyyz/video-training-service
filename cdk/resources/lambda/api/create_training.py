@@ -3,6 +3,7 @@ import uuid
 import json
 import logging
 import os
+import base64
 from botocore.exceptions import ClientError
 from typing import Dict
 import vt_const
@@ -68,7 +69,8 @@ def execute_state_machine(training_info: TrainingInfo):
 
 def do(event):
     # リクエストから研修情報を取得
-    training_info = TrainingInfo(json.loads(event["body"]))
+    body = base64.b64decode(event["body"]).decode("utf-8")
+    training_info = TrainingInfo(json.loads(body))
     logger.info("training info", extra=vars(training_info))
 
     # Trainingsテーブルへitem作成

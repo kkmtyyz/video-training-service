@@ -8,7 +8,6 @@ import { VtVpcEndpoint } from "./vpc-endpoint";
 import { VtNetworkFirewall } from "./network-firewall";
 import { VtAlb } from "./application-load-balancer";
 import { VtHostedZone } from "./hosted-zone";
-import { VtApiGw } from "./api-gateway";
 import { VtLambda } from "./lambda";
 import { VtS3 } from "./s3";
 import { VtDynamoDb } from "./dynamodb";
@@ -36,14 +35,6 @@ export class VideoTrainingServiceStack extends cdk.Stack {
 
     const vtCognito = new VtCognito(this, "VtCognito", { config });
 
-    const vtAlb = new VtAlb(this, "VtAlb", {
-      config,
-      vtVpc,
-      vtVpcEndpoint,
-      vtVpn,
-      vtCognito,
-    });
-
     const vtS3 = new VtS3(this, "VtS3", {
       config,
       vtVpcEndpoint,
@@ -66,10 +57,13 @@ export class VideoTrainingServiceStack extends cdk.Stack {
       vtStepFunctions,
     });
 
-    const vtApiGw = new VtApiGw(this, "VtApiGw", {
+    const vtAlb = new VtAlb(this, "VtAlb", {
       config,
-      vtLambda,
+      vtVpc,
       vtVpcEndpoint,
+      vtVpn,
+      vtCognito,
+      vtLambda,
     });
 
     const vtHostedZone = new VtHostedZone(this, "VtHostedZone", {

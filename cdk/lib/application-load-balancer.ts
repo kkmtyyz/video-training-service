@@ -5,6 +5,7 @@ import { VtVpc } from "./vpc";
 import { VtVpn } from "./vpn";
 import { VtVpcEndpoint } from "./vpc-endpoint";
 import { VtCognito } from "./cognito";
+import { VtLambda } from "./lambda";
 import * as elbv2 from "aws-cdk-lib/aws-elasticloadbalancingv2";
 import * as elbv2_targets from "aws-cdk-lib/aws-elasticloadbalancingv2-targets";
 import * as elbv2_actions from "aws-cdk-lib/aws-elasticloadbalancingv2-actions";
@@ -17,6 +18,7 @@ interface VtAlbProps {
   vtVpcEndpoint: VtVpcEndpoint;
   vtVpn: VtVpn;
   vtCognito: VtCognito;
+  vtLambda: VtLambda;
 }
 
 export class VtAlb extends Construct {
@@ -81,6 +83,7 @@ export class VtAlb extends Construct {
     const vtVpcEndpoint = props.vtVpcEndpoint;
     const vtVpn = props.vtVpn;
     const vtCognito = props.vtCognito;
+    const vtLambda = props.vtLambda;
 
     // Target
     // S3 Interface Endpoint
@@ -91,14 +94,9 @@ export class VtAlb extends Construct {
     );
     const s3ITarget1 = new elbv2_targets.IpTarget(s3InterfaceEndpointIps[0]);
     const s3ITarget2 = new elbv2_targets.IpTarget(s3InterfaceEndpointIps[1]);
-    // API Gateway Interface Endpoint
-    const ApiGwEndpointIps = this.getVpcEndpointIps(
-      this,
-      "ApiEndpointIps",
-      vtVpcEndpoint.apiGw,
-    );
-    const ApiGwTarget1 = new elbv2_targets.IpTarget(ApiGwEndpointIps[0]);
-    const ApiGwTarget2 = new elbv2_targets.IpTarget(ApiGwEndpointIps[1]);
+
+    // Lambda
+    const lambdaTarget = new elbv2_targets.LambdaTarget(vtLambda.apiFunction);
 
     // Target Group
     const s3InterfaceTg = new elbv2.ApplicationTargetGroup(
@@ -119,18 +117,14 @@ export class VtAlb extends Construct {
       },
     );
 
-    const ApiGwTg = new elbv2.ApplicationTargetGroup(this, "ApiGwTargetGroup", {
-      healthCheck: {
-        // health check ref: https://docs.aws.amazon.com/ja_jp/prescriptive-guidance/latest/patterns/deploy-an-amazon-api-gateway-api-on-an-internal-website-using-private-endpoints-and-an-application-load-balancer.html#deploy-an-amazon-api-gateway-api-on-an-internal-website-using-private-endpoints-and-an-application-load-balancer-epics
-        // API Gateway Endpointはヘルスチェックに403返すため
-        healthyHttpCodes: "200,403",
+    const lambdaTg = new elbv2.ApplicationTargetGroup(
+      this,
+      "LambdaTargetGroup",
+      {
+        targetGroupName: config.appName + "-lambda",
+        targets: [lambdaTarget],
       },
-      port: 443,
-      protocol: elbv2.ApplicationProtocol.HTTPS,
-      targetGroupName: config.appName + "-api-gw",
-      targets: [ApiGwTarget1, ApiGwTarget2],
-      vpc: vtVpc.vpc,
-    });
+    );
 
     // Application Load Balancer
     this.albSg = new ec2.SecurityGroup(this, "SecurityGroup", {
@@ -140,7 +134,6 @@ export class VtAlb extends Construct {
       ec2.Peer.securityGroupId(vtVpn.vpnSg.securityGroupId), // VPN Endpointからのみ許可
       ec2.Port.allTraffic(),
     );
-    this.albSg.addEgressRule(ec2.Peer.anyIpv4(), ec2.Port.allTraffic());
 
     this.alb = new elbv2.ApplicationLoadBalancer(this, "ALB", {
       vpc: vtVpc.vpc,
@@ -149,6 +142,9 @@ export class VtAlb extends Construct {
       vpcSubnets: { subnets: vtVpc.privateSubnets },
       internetFacing: false,
     });
+
+    // ヘルスチェック用にセキュリティグループにルール追加
+    vtVpcEndpoint.s3Sg.addIngressRule(this.albSg, ec2.Port.HTTP);
 
     // Listener
     const httpsListener = this.alb.addListener("HttpsListener", {
@@ -178,23 +174,16 @@ export class VtAlb extends Construct {
       priority: 200,
     });
 
-    // API呼び出しは`/<API GWステージ>/*`へ転送
+    // `/api/*`はLambda関数へ転送
     httpsListener.addAction("ApiRule", {
       action: new elbv2_actions.AuthenticateCognitoAction({
-        next: elbv2.ListenerAction.forward([ApiGwTg]),
+        next: elbv2.ListenerAction.forward([lambdaTg]),
         userPool: vtCognito.userPool,
         userPoolClient: vtCognito.userPoolClient,
         userPoolDomain: vtCognito.userPoolDomain,
       }),
-      conditions: [
-        elbv2.ListenerCondition.pathPatterns([
-          "/" + config.apiStageName + "/*",
-        ]),
-      ],
+      conditions: [elbv2.ListenerCondition.pathPatterns(["/api/*"])],
       priority: 100,
     });
-
-    // ヘルスチェック用にルール追加
-    vtVpcEndpoint.s3Sg.addIngressRule(this.albSg, ec2.Port.HTTP);
   }
 }

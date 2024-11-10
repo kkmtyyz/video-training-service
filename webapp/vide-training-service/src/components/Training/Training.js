@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import VideoJS from "./VideoJS";
-import { API_BASE_URL, X_APIGW_API_ID } from "../Constants";
+import { API_BASE_URL } from "../Constants";
 
 function Training(props) {
   const [loading, setLoading] = useState(true);
@@ -44,7 +44,6 @@ function Training(props) {
       const req = {
         method: "PUT",
         headers: {
-          "x-apigw-api-id": X_APIGW_API_ID,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(body),
@@ -79,9 +78,6 @@ function Training(props) {
       const url = API_BASE_URL + "/training?" + query;
       const req = {
         method: "GET",
-        headers: {
-          "x-apigw-api-id": X_APIGW_API_ID,
-        },
       };
 
       const res = await fetch(url, req);

@@ -14,13 +14,11 @@ export class VtVpcEndpoint extends Construct {
   s3Gateway: ec2.GatewayVpcEndpoint;
   s3Interface: ec2.InterfaceVpcEndpoint;
   dynamodbGateway: ec2.GatewayVpcEndpoint;
-  apiGw: ec2.InterfaceVpcEndpoint;
   logs: ec2.InterfaceVpcEndpoint;
   sfn: ec2.InterfaceVpcEndpoint;
 
   // Security Group
   s3Sg: ec2.SecurityGroup;
-  apiGwSg: ec2.SecurityGroup;
   logsSg: ec2.SecurityGroup;
   sfnSg: ec2.SecurityGroup;
 
@@ -58,18 +56,6 @@ export class VtVpcEndpoint extends Construct {
       subnets: [{ subnets: vtVpc.privateSubnets }],
     });
     this.dynamodbGateway.applyRemovalPolicy(RemovalPolicy.DESTROY);
-
-    // API Gateway Endpoint
-    this.apiGwSg = new ec2.SecurityGroup(this, "ApiGatewaySG", {
-      vpc: vtVpc.vpc,
-    });
-    this.apiGwSg.addEgressRule(ec2.Peer.anyIpv4(), ec2.Port.allTraffic());
-
-    this.apiGw = vtVpc.vpc.addInterfaceEndpoint("ApiGateway", {
-      service: ec2.InterfaceVpcEndpointAwsService.APIGATEWAY,
-      securityGroups: [this.apiGwSg],
-      subnets: { subnets: vtVpc.privateSubnets },
-    });
 
     // Cloudwatch Logs Endpoint
     this.logsSg = new ec2.SecurityGroup(this, "LogsSG", {

@@ -95,7 +95,8 @@ export class VtLambda extends Construct {
     this.apiFunction = new lambda.Function(this, "ApiFunction", {
       handler: "lambda_function.lambda_handler",
       runtime: lambda.Runtime.PYTHON_3_12,
-      timeout: Duration.seconds(30),
+      timeout: Duration.seconds(120),
+      memorySize: 1024,
       role: this.lambdaRole,
       securityGroups: [this.lambdaSg],
       vpc: vtVpc.vpc,

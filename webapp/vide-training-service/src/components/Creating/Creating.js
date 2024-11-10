@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { API_BASE_URL, X_APIGW_API_ID } from "../Constants";
+import { API_BASE_URL } from "../Constants";
 
 function Creating() {
   const [trainingTitle, setTrainingTitle] = useState("");
@@ -24,9 +24,6 @@ function Creating() {
       const url = API_BASE_URL + "/video/presigned-url";
       const req = {
         method: "GET",
-        headers: {
-          "x-apigw-api-id": X_APIGW_API_ID,
-        },
       };
       console.log(req);
 
@@ -57,15 +54,12 @@ function Creating() {
 
   async function uploadTrainingVideo(uploadUrl) {
     try {
-      //const trainingVideoData = new FormData();
-      //trainingVideoData.append("file", trainingVideo);
       const url = uploadUrl;
       const req = {
         method: "PUT",
         headers: {
-          "x-apigw-api-id": X_APIGW_API_ID,
+          "Content-Type": "video/mp4",
         },
-        //body: trainingVideoData,
         body: trainingVideo,
       };
       console.log(req);
@@ -97,7 +91,6 @@ function Creating() {
       const req = {
         method: "POST",
         headers: {
-          "x-apigw-api-id": X_APIGW_API_ID,
           "Content-Type": "pplication/json",
         },
         body: JSON.stringify(body),

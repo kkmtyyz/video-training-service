@@ -10,7 +10,7 @@ logger = logging.getLogger(vt_const.PROJECT_NAME).getChild(__name__)
 def get_user_claim_from_event(event) -> Dict:
     logger.debug(event)
     try:
-        oidc_data = event["headers"]["X-Amzn-Oidc-Data"]
+        oidc_data = event["headers"]["x-amzn-oidc-data"]
         logger.debug(oidc_data)
         user_claim = json.loads(base64.b64decode(oidc_data.split(".")[1]).decode())
         logger.debug("user_claim", extra=user_claim)
