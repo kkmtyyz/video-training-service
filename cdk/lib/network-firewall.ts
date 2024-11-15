@@ -37,7 +37,6 @@ export class VtNetworkFirewall extends Construct {
                 // cognitoドメインは'<prefix>.auth.ap-northeast-1.amazoncognito.com`になる
                 config.cognitoDomainPrefix +
                   ".auth.ap-northeast-1.amazoncognito.com",
-                ".cloudfront.net", // cognitoログインページのcss等静的コンテンツ用
               ],
             },
           },
