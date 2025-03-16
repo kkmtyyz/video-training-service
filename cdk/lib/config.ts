@@ -16,7 +16,25 @@ export class VtConfig extends Construct {
   vpcCidr = "10.0.0.0/16";
 
   /*
-   * vpn endpoint
+   * VPN
+   */
+  // trueの場合、AWS Site-to-Site VPNを使用する
+  // falseの場合、AWS Client VPNを使用する
+  useSite2SiteVpn = false;
+
+  /*
+   * Site-to-Site VPN
+   *
+   * NOTE:
+   *   - オンプレのDNSサーバーに条件付きフォワード設定を行う必要がある
+   *   - ASNはデフォルトの65000
+   */
+  customerGatewayIp: string; // カスタマーゲートウェイのIPアドレス
+  customerGatewayASN = 65000; // カスタマーゲートウェイのASN
+  customerNetworkCidr: string; // オンプレのCIDR
+
+  /*
+   * Client VPN
    */
   vpnClientCidr = "10.10.0.0/16";
   vpnDnsServer = "10.0.0.2"; // クライアントからVPCのDNSで名前解決する
@@ -53,6 +71,18 @@ export class VtConfig extends Construct {
       this,
       "/VideoTraining/ClientCertificateArn",
     );
+
+    if (this.useSite2SiteVpn) {
+      this.customerGatewayIp = ssm.StringParameter.valueForStringParameter(
+        this,
+        "/VideoTraining/CustomerGatewayIp",
+      );
+
+      this.customerNetworkCidr = ssm.StringParameter.valueForStringParameter(
+        this,
+        "/VideoTraining/CustomerNetworkCidr",
+      );
+    }
 
     this.vpnSgInboundCidr = ssm.StringParameter.valueForStringParameter(
       this,
