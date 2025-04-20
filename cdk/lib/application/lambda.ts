@@ -50,6 +50,7 @@ export class VtLambda extends Construct {
           resources: [
             vtDynamoDb.trainingTable.tableArn,
             vtDynamoDb.userTrainingStatusTable.tableArn,
+            vtDynamoDb.reviewsTable.tableArn,
           ],
         }),
         new iam.PolicyStatement({
@@ -108,6 +109,7 @@ export class VtLambda extends Construct {
         TRAININGS_TABLE_NAME: vtDynamoDb.trainingTable.tableName,
         USER_TRAINING_STATUS_TABLE_NAME:
           vtDynamoDb.userTrainingStatusTable.tableName,
+        REVIEWS_TABLE_NAME: vtDynamoDb.reviewsTable.tableName,
         STATE_MACHINE_ARN:
           vtStepFunctions.mediaConvertStateMachine.stateMachineArn,
         S3_REGION_NAME: "ap-northeast-1",

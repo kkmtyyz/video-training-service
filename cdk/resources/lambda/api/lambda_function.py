@@ -5,6 +5,8 @@ import create_training
 import get_training_list
 import update_training_status
 import get_presigned_url
+import create_review
+import get_reviews
 import vt_const
 
 logger = logging.getLogger(vt_const.PROJECT_NAME)
@@ -44,5 +46,15 @@ def lambda_handler(event, context):
     if request_path == "/video/presigned-url":
         if request_method == "GET":
             return get_presigned_url.do(event)
+
+    # /training/review
+    if request_path == "/training/review":
+        if request_method == "POST":
+            return create_review.do(event)
+
+    # /training/reviews
+    if request_path == "/training/reviews":
+        if request_method == "GET":
+            return get_reviews.do(event)
 
     raise Exception("Invalid request", {"path": request_path, "method": request_method})

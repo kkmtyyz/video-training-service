@@ -10,6 +10,7 @@ interface VtDynamoDbProps {
 export class VtDynamoDb extends Construct {
   trainingTable: dynamodb.TableV2;
   userTrainingStatusTable: dynamodb.TableV2;
+  reviewsTable: dynamodb.TableV2;
 
   constructor(scope: Construct, id: string, props: VtDynamoDbProps) {
     super(scope, id);
@@ -33,5 +34,13 @@ export class VtDynamoDb extends Construct {
         tableName: config.appName + "UserTrainingStatus",
       },
     );
+
+    this.reviewsTable = new dynamodb.TableV2(this, "ReviewsTable", {
+      partitionKey: { name: "TrainingId", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "Email", type: dynamodb.AttributeType.STRING },
+      billing: dynamodb.Billing.onDemand(),
+      removalPolicy: RemovalPolicy.DESTROY,
+      tableName: config.appName + "Reviews",
+    });
   }
 }

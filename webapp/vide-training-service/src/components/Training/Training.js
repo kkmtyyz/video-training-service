@@ -1,18 +1,26 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import VideoJS from "./VideoJS";
+import ReviewForm from "./ReviewForm";
+import ReviewList from "./ReviewList";
 import { API_BASE_URL } from "../Constants";
 
 function Training(props) {
   const [loading, setLoading] = useState(true);
   const [trainingInfo, setTrainingInfo] = useState({});
   const [videoJsOptions, setVideoJsOptions] = useState({});
+  const [reviewRefreshTrigger, setReviewRefreshTrigger] = useState(0);
 
   const search = useLocation().search;
   const urlParams = new URLSearchParams(search);
 
   const playerRef = useRef(null);
   const needTrainingUpdateStatusAPICall = useRef(true);
+  
+  const handleReviewSubmitted = () => {
+    // レビュー投稿後にレビュー一覧を更新するためのトリガー
+    setReviewRefreshTrigger(prev => prev + 1);
+  };
 
   const handlePlayerReady = (player) => {
     playerRef.current = player;
@@ -175,6 +183,22 @@ function Training(props) {
       <div className="row mx-3 mt-3 mb-5">
         <div className="col-2 fs-5">概要: </div>
         <div className="col-10 fs-5">{trainingInfo.Description}</div>
+      </div>
+
+      <div className="row mx-3 mt-5">
+        <h3 className="mb-4">レビュー</h3>
+        <div className="col-12 col-md-6">
+          <ReviewForm 
+            trainingId={trainingInfo.TrainingId} 
+            onReviewSubmitted={handleReviewSubmitted} 
+          />
+        </div>
+        <div className="col-12">
+          <ReviewList 
+            trainingId={trainingInfo.TrainingId} 
+            refreshTrigger={reviewRefreshTrigger} 
+          />
+        </div>
       </div>
     </div>
   );
