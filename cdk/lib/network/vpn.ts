@@ -37,7 +37,7 @@ export class VtVpn extends Construct {
       });
 
       // VPCにVPNゲートウェイをアタッチ
-      new ec2.CfnVPCGatewayAttachment(this, "VpcGatewayAttachment", {
+      const vpcGatewayAttachment = new ec2.CfnVPCGatewayAttachment(this, "VpcGatewayAttachment", {
         vpcId: vtVpc.vpc.vpcId,
         vpnGatewayId: vpnGateway.attrVpnGatewayId,
       });
@@ -50,13 +50,16 @@ export class VtVpn extends Construct {
       });
 
       // サブネットのルートテーブルでVPNゲートウェイからのルート伝播を有効化
-      new ec2.CfnVPNGatewayRoutePropagation(this, "VpnRoutePropagation", {
+      const routePropagation = new ec2.CfnVPNGatewayRoutePropagation(this, "VpnRoutePropagation", {
         routeTableIds: [
           vtVpc.privateSubnets[0].routeTable.routeTableId,
           vtVpc.privateSubnets[1].routeTable.routeTableId,
         ],
         vpnGatewayId: vpnGateway.attrVpnGatewayId,
       });
+
+      // VPCへのアタッチ前にルート伝播を有効化しようとしてエラーになる場合があるため依存関係を明示的に設定
+      routePropagation.node.addDependency(vpcGatewayAttachment);
       return;
     }
 
